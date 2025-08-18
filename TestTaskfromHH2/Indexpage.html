@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Контейнер CRM</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 10px;
+            padding: 10px;
+            width: 100%;
+            height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+            nav ul li {
+                margin: 10px 0;
+            }
+
+                nav ul li a {
+                    color: black;
+                    text-decoration: none;
+                    transition: background-color 0.3s ease-in-out;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    display: inline-block;
+                }
+
+                    nav ul li a.highlighted,
+                    nav ul li a:hover {
+                        background-color: yellow;
+                        padding: 8px 18px;
+                    }
+
+        .list-container, .content-container {
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+            background: white;
+        }
+
+        .content-container {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 10px;
+        }
+
+            .content-container div {
+                border: 1px solid #ddd;
+                padding: 10px;
+                background: #fff;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+
+        h2 {
+            margin: 0 0 10px 0;
+        }
+
+        .list-container ul li a {
+            color: black;
+        }
+
+        .form-container {
+            margin-top: 20px;
+        }
+
+            .form-container input, .form-container select {
+                margin-right: 10px;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h2>Меню</h2>
+        </header>
+        <nav>
+            <ul>
+                <li><a href="#" onclick="changeSection('deals')">Сделки</a></li>
+                <li><a href="#" onclick="changeSection('contacts')">Контакты</a></li>
+            </ul>
+        </nav>
+        <div class="list-container">
+            <h2>Список</h2>
+            <ul id="list-items"></ul>
+            <div class="form-container">
+                <input type="text" id="input-name" placeholder="Наименование/Имя" />
+                <select id="input-contact" style="display: none;"></select>
+                <select id="input-deal" style="display: none;"></select>
+                <button onclick="addItem()">Добавить</button>
+                <button onclick="updateItem()">Сохранить изменения</button>
+            </div>
+        </div>
+        <div class="content-container">
+            <div class="content-part-one">
+                <h2>Содержимое</h2>
+                <table id="first-table"></table>
+            </div>
+        </div>
+    </div>
+
+    <script>let nextDealId = 4; let nextContactId = 36; const dealsData = [{ id: 1, name: 'Хотят люстру', sum: 2000, contacts: [15] }, { id: 14, name: 'Хотят светильник', sum: 5000, contacts: [15, 25] }, { id: 3, name: 'Пока думают', sum: 4000, contacts: [15, 25] }];
+        const contactsData = [{ id: 15, first_name: 'Иван', last_name: 'Петров', deals: [1, 14] }, { id: 25, first_name: 'Наталья', last_name: 'Сидорова', deals: [14] }, { id: 35, first_name: 'Василий', last_name: 'Иванов', deals: [1] }];
+        let currentSection = ''; let currentSelectedItem = null; function changeSection(section) {
+            document.querySelectorAll('nav ul li a').forEach(a => a.classList.remove('highlighted')); document.querySelector(`nav ul li a[onclick*="${section}"]`).classList.add('highlighted');
+            clearListsAndTables(); currentSection = section; populateList(currentSection); toggleInputs(section);
+        } function clearListsAndTables() { document.getElementById('list-items').innerHTML = ''; document.getElementById('first-table').innerHTML = ''; document.getElementById('input-name').value = ''; document.getElementById('input-contact').innerHTML = ''; document.getElementById('input-deal').innerHTML = ''; } function toggleInputs(section) {
+            const inputContactSelect = document.getElementById('input-contact');
+            const inputDealSelect = document.getElementById('input-deal'); inputContactSelect.style.display = section === 'deals' ? 'inline' : 'none'; inputDealSelect.style.display = section === 'contacts' ? 'inline' : 'none'; if (section === 'deals') populateContacts();
+            else if (section === 'contacts') populateDeals();
+        } function populateContacts() { const inputContactSelect = document.getElementById('input-contact'); inputContactSelect.innerHTML = ''; contactsData.forEach(contact => { const option = document.createElement('option'); option.value = contact.id; option.textContent = `${contact.first_name} ${contact.last_name}`; inputContactSelect.appendChild(option); }); } function populateDeals() {
+            const inputDealSelect = document.getElementById('input-deal');
+            inputDealSelect.innerHTML = ''; dealsData.forEach(deal => { const option = document.createElement('option'); option.value = deal.id; option.textContent = deal.name; inputDealSelect.appendChild(option); });
+        } function populateList(section) {
+            const listContainer = document.getElementById('list-items'); const dataToShow = section === 'deals' ? dealsData : contactsData; dataToShow.forEach(item => {
+                const li = document.createElement('li'); const anchor = document.createElement('a'); anchor.href = '#'; anchor.textContent = section === 'deals' ? item.name : `${item.first_name} ${item.last_name}`; anchor.onclick = (event) => { event.preventDefault(); showItemDetails(item, event); }; const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Удалить'; deleteButton.onclick = (event) => { event.stopPropagation(); deleteItem(item); }; li.appendChild(anchor); li.appendChild(deleteButton); listContainer.appendChild(li);
+            });
+        } function showItemDetails(item, event) { document.querySelectorAll('#list-items a').forEach(a => a.classList.remove('highlighted')); event.target.classList.add('highlighted'); currentSelectedItem = item; fillFirstTable(item); populateForm(item); } function fillFirstTable(item) {
+            const firstTable = document.getElementById('first-table'); firstTable.innerHTML = '<tr><th>Параметр</th><th>Значение</th></tr>'; const rows = []; if (currentSection === 'deals') { rows.push(['ID сделки:', item.id]); rows.push(['Наименование:', item.name]); rows.push(['Сумма:', item.sum]); item.contacts.forEach(id => { const contact = contactsData.find(c => c.id === id); rows.push([`ID контакта: ${id}`, `${contact.first_name} ${contact.last_name}`]); }); }
+            else if (currentSection === 'contacts') { rows.push(['ID:', item.id]); rows.push(['Имя:', item.first_name]); rows.push(['Фамилия:', item.last_name]); item.deals.forEach(id => { const deal = dealsData.find(d => d.id === id); rows.push([`ID сделки: ${id}`, deal.name]); }); } rows.forEach(row => { const tr = document.createElement('tr'); row.forEach(cellText => { const td = document.createElement('td'); td.textContent = cellText; tr.appendChild(td); }); firstTable.appendChild(tr); });
+        } function populateForm(item) { const nameInput = document.getElementById('input-name'); const inputContact = document.getElementById('input-contact'); const inputDeal = document.getElementById('input-deal'); if (currentSection === 'deals') { nameInput.value = item.name; inputContact.value = item.contacts[0] || ''; inputDeal.style.display = 'none'; } else { nameInput.value = item.first_name + ' ' + item.last_name; inputContact.style.display = 'none'; inputDeal.value = item.deals[0] || ''; } } function addItem() {
+            const nameInput = document.getElementById('input-name').value; const selectedContactId = document.getElementById('input-contact').value; const selectedDealId = document.getElementById('input-deal').value; if (currentSection === 'deals') { const newDeal = { id: nextDealId++, name: nameInput, sum: parseFloat(0), contacts: selectedContactId ? [parseInt(selectedContactId)] : [] }; dealsData.push(newDeal); } else { const names = nameInput.split(' '); const newContact = { id: nextContactId++, first_name: names[0], last_name: names[1], deals: selectedDealId ? [parseInt(selectedDealId)] : [] }; contactsData.push(newContact); } clearListsAndTables(); populateList(currentSection);
+            saveDataToFile();
+        } function updateItem() {
+            const nameInput = document.getElementById('input-name').value; const selectedContactId = document.getElementById('input-contact').value; const selectedDealId = document.getElementById('input-deal').value; if (currentSelectedItem) {
+                if (currentSection === 'deals') { currentSelectedItem.name = nameInput; currentSelectedItem.contacts = selectedContactId ? [parseInt(selectedContactId)] : []; } else { const names = nameInput.split(' '); currentSelectedItem.first_name = names[0]; currentSelectedItem.last_name = names[1]; currentSelectedItem.deals = selectedDealId ? [parseInt(selectedDealId)] : []; } clearListsAndTables(); populateList(currentSection);
+                saveDataToFile();
+            }
+        } function deleteItem(item) { if (currentSection === 'deals') { const index = dealsData.indexOf(item); if (index > -1) dealsData.splice(index, 1); } else { const index = contactsData.indexOf(item); if (index > -1) contactsData.splice(index, 1); } clearListsAndTables(); populateList(currentSection); saveDataToFile(); } function saveDataToFile() { const exportObject = { deals: dealsData.map(deal => ({ ...deal })), contacts: contactsData.map(contact => ({ ...contact })) }; const blob = new Blob([JSON.stringify(exportObject)], { type: 'application/json' }); const link = document.createElement('a'); link.download = 'crm-data.json'; link.href = URL.createObjectURL(blob); link.style.display = 'none'; document.body.appendChild(link); link.click(); setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(link.href); }, 100); } window.onload = () => changeSection('contacts');</script>
+</body>
+</html>
